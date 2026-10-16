@@ -1,4 +1,4 @@
-# TaskBoard CD — use this file when final-devops-project/ is its own repository
+# ClinicFlow CD — use this file when final-devops-project/ is its own repository
 # (the monorepo copy lives at <repo>/.github/workflows/session21-cd.yml).
 #
 # Runs only after the CI workflow finished *successfully* on main (or manually).
@@ -12,11 +12,11 @@
 #   2. helm-deploy    (optional push-style deploy)
 #      `helm upgrade --install` straight into a cluster. Skipped unless the
 #      repository secret KUBECONFIG (base64-encoded kubeconfig) is configured.
-name: TaskBoard CD
+name: ClinicFlow CD
 
 on:
   workflow_run:
-    workflows: ["TaskBoard CI"]
+    workflows: ["ClinicFlow CI"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -27,20 +27,20 @@ on:
 
 env:
   APP_DIR: .
-  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/taskboard-backend
-  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/taskboard-frontend
+  BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/clinicflow-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/clinicflow-frontend
   # Desired-state files that pin the image tag (paths relative to APP_DIR)
-  VALUES_FILE: helm/taskboard/values-prod.yaml
+  VALUES_FILE: helm/clinicflow/values-prod.yaml
   GITOPS_DIR: gitops
-  RELEASE: taskboard
-  NAMESPACE: taskboard
+  RELEASE: clinicflow
+  NAMESPACE: clinicflow
 
 permissions:
   contents: read
 
 # Never run two promotions at once; queue them instead of cancelling.
 concurrency:
-  group: taskboard-cd
+  group: clinicflow-cd
   cancel-in-progress: false
 
 defaults:
@@ -87,10 +87,10 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
           [ -d "$GITOPS_DIR" ] || { echo "no $GITOPS_DIR/ directory - skipping"; exit 0; }
-          grep -rlE 'taskboard-(backend|frontend)' "$GITOPS_DIR" --include='*.yaml' --include='*.yml' |
+          grep -rlE 'clinicflow-(backend|frontend)' "$GITOPS_DIR" --include='*.yaml' --include='*.yml' |
             while read -r f; do
-              # image: ghcr.io/<owner>/taskboard-backend:<old>  ->  :<new>
-              sed -i -E "s#(ghcr\.io/[^/\"' ]+/taskboard-(backend|frontend)):[A-Za-z0-9._-]+#\1:${TAG}#g" "$f"
+              # image: ghcr.io/<owner>/clinicflow-backend:<old>  ->  :<new>
+              sed -i -E "s#(ghcr\.io/[^/\"' ]+/clinicflow-(backend|frontend)):[A-Za-z0-9._-]+#\1:${TAG}#g" "$f"
               # kustomize images: newTag: <old>
               if grep -q 'newTag:' "$f"; then sed -i -E "s#(newTag:[[:space:]]*)[\"']?[A-Za-z0-9._-]+[\"']?#\1\"${TAG}\"#" "$f"; fi
             done
@@ -108,7 +108,7 @@ jobs:
           git diff --cached --stat
           # [skip ci]: a bot commit must not start another CI run (pushes made with
           # GITHUB_TOKEN don't trigger workflows anyway - this is belt and braces).
-          git commit -m "chore(gitops): deploy taskboard ${TAG::7} [skip ci]"
+          git commit -m "chore(gitops): deploy clinicflow ${TAG::7} [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
           {
@@ -158,7 +158,7 @@ jobs:
       - name: helm upgrade --install
         if: steps.check.outputs.enabled == 'true'
         run: |
-          helm upgrade --install "$RELEASE" helm/taskboard \
+          helm upgrade --install "$RELEASE" helm/clinicflow \
             --namespace "$NAMESPACE" --create-namespace \
             -f "$VALUES_FILE" \
             --set backend.image.repository="$BACKEND_IMAGE" --set backend.image.tag="$TAG" \
