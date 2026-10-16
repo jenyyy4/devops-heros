@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# TaskBoard UI — multi-stage build
+# ClinicFlow UI — multi-stage build
 #   stage 1 (build):   reproducible `npm ci` + `vite build`
 #   stage 2 (runtime): static files served by the *unprivileged* nginx image
 #                      (runs as uid 101, listens on 8080 — no root, no port < 1024)
@@ -14,8 +14,8 @@ RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:1.30-alpine AS runtime
 ARG GIT_SHA=dev
-LABEL org.opencontainers.image.title="taskboard-frontend" \
-      org.opencontainers.image.description="TaskBoard React UI served by nginx" \
+LABEL org.opencontainers.image.title="clinicflow-frontend" \
+      org.opencontainers.image.description="ClinicFlow React UI served by nginx" \
       org.opencontainers.image.revision="${GIT_SHA}"
 # Pick up Alpine security fixes released after the base image was built (trivy: zlib).
 USER 0

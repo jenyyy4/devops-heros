@@ -1,5 +1,5 @@
 {
-  "name": "taskboard-frontend",
+  "name": "clinicflow-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test 'src/**/*.test.js'"
   },
   "dependencies": {
     "react": "19.3.0",
