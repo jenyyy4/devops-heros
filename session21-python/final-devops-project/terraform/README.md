@@ -1,6 +1,6 @@
-# Terraform: AWS infrastructure for TaskBoard
+# Terraform: AWS infrastructure for ClinicFlow
 
-This folder provisions the cloud infrastructure that the TaskBoard app (FastAPI + React + Postgres) runs on in AWS:
+This folder provisions the cloud infrastructure that the ClinicFlow app (FastAPI + React + Postgres) runs on in AWS:
 
 | Layer | Resources |
 |-------|-----------|
@@ -8,7 +8,7 @@ This folder provisions the cloud infrastructure that the TaskBoard app (FastAPI 
 | Security | Locked-down default SG; EKS control-plane SG and worker-node SG with explicit least-privilege rules; one KMS key (rotation on) for EKS secrets, ECR and logs |
 | Compute | EKS cluster (K8s 1.31, all control-plane logs on, secrets envelope-encrypted, access entries); managed node group (2-4 x `t3.medium`) in the private subnets, using a launch template with IMDSv2 and encrypted gp3 disks |
 | IAM | Cluster role, node role (EKS worker, CNI, ECR read-only, SSM), flow-logs role |
-| Registry | ECR repos `taskboard-backend` and `taskboard-frontend` (scan on push, immutable tags, KMS, lifecycle policy keeps the last 20 images). These are an AWS-native alternative to GHCR. |
+| Registry | ECR repos `clinicflow-backend` and `clinicflow-frontend` (scan on push, immutable tags, KMS, lifecycle policy keeps the last 20 images). These are an AWS-native alternative to GHCR. |
 
 Subnets carry the `kubernetes.io/role/elb` and `kubernetes.io/role/internal-elb` tags, so AWS Load Balancer Controller and `Service type=LoadBalancer` can find them.
 
@@ -21,7 +21,7 @@ terraform/
 ├── main.tf                     # real-AWS root: calls the module with EKS fully on
 ├── variables.tf / outputs.tf   # inputs; outputs incl. kubeconfig + ECR login commands
 ├── terraform.tfvars.example
-├── modules/taskboard-infra/    # ALL resources live here (plain aws_* resources, no 3rd-party modules)
+├── modules/clinicflow-infra/    # ALL resources live here (plain aws_* resources, no 3rd-party modules)
 │   ├── main.tf                 # tags, KMS key
 │   ├── network.tf              # VPC, subnets, IGW, NAT, routes, flow logs
 │   ├── security-groups.tf
@@ -52,7 +52,7 @@ terraform plan -out=tfplan
 terraform apply tfplan                          # takes about 15 min (EKS control plane + nodes)
 
 # connect kubectl (the exact command is printed as an output)
-$(terraform output -raw configure_kubectl)      # aws eks update-kubeconfig --region ap-south-1 --name taskboard-dev-eks
+$(terraform output -raw configure_kubectl)      # aws eks update-kubeconfig --region ap-south-1 --name clinicflow-dev-eks
 kubectl get nodes
 
 # optional: push images to ECR instead of GHCR
@@ -60,7 +60,7 @@ eval "$(terraform output -raw ecr_login)"
 terraform output ecr_repository_urls
 ```
 
-After this, deploy the app with the Helm chart or manifests from `../helm` and `../kubernetes`. Set the image repository to the ECR URL if you use ECR.
+After this, deploy the app with the Helm chart or manifests from `../helm` and `../k8s`. Set the image repository to the ECR URL if you use ECR.
 
 **Destroy:**
 
@@ -86,25 +86,40 @@ cd terraform/environments/local-mock
 terraform init
 terraform validate
 terraform plan -out=tfplan          # Plan: 47 to add
-terraform apply tfplan
+terraform apply tfplan              # Apply complete! Resources: 47 added
 terraform output
-terraform state list
-pip install boto3 && python3 verify_moto.py   # lists VPC, subnets, IGW/NAT, SGs, EKS, node group, ECR
-terraform destroy -auto-approve
+terraform state list                # 55 entries (47 resources + data sources)
+pip install boto3 && python3 verify_moto.py http://localhost:4577   # lists VPC, subnets, IGW/NAT, SGs, EKS, node group, ECR
+terraform destroy -auto-approve      # Destroy complete! Resources: 47 destroyed.
 ```
+
+Results of the run (screenshots 30-37):
+
+| Screenshot | Result |
+|------------|--------|
+| [`30`](../screenshots/30-terraform-fmt-validate.png) | `fmt -check -recursive` OK; `validate` succeeds for the root and for `environments/local-mock` |
+| [`31`](../screenshots/31-terraform-init.png) | `init` loads `../../modules/clinicflow-infra` and installs `hashicorp/aws v5.100.0` |
+| [`32`](../screenshots/32-terraform-plan.png) | `Plan: 47 to add, 0 to change, 0 to destroy.` |
+| [`33`](../screenshots/33-terraform-apply.png) | `Apply complete! Resources: 47 added, 0 changed, 0 destroyed.` |
+| [`34`](../screenshots/34-terraform-output-state.png) | Outputs: cluster `clinicflow-mock-eks`, node group `clinicflow-mock-default`, 2 public + 2 private subnets, both ECR repo URLs, NAT IP `127.221.184.57`; 55 entries in state |
+| [`35`](../screenshots/35-moto-verify-vpc-eks.png) | `verify_moto.py` (boto3): VPC `10.20.0.0/16`, 4 subnets across `ap-south-1a`/`1b`, IGW, NAT `available`, default + cluster + node SGs, EKS `v1.31 ACTIVE`, node group `t3.medium` min 2 / desired 2 / max 4 `ACTIVE`, both ECR repos `scanOnPush=True IMMUTABLE` |
+| [`36`](../screenshots/36-checkov-iac-scan.png) | Checkov on the module: 138 passed, 0 failed, 9 skipped |
+| [`37`](../screenshots/37-terraform-destroy.png) | `Destroy complete! Resources: 47 destroyed.`, 0 left in state; `verify_moto.py` finds nothing but the NAT gateway in state `deleted` |
 
 Notes on the mock:
 - All IDs, the EKS endpoint, the NAT IP (`127.x.x.x`) and the account `123456789012` come from Moto. Nothing is reachable, and `aws eks update-kubeconfig` cannot produce a working kubeconfig for it.
 - Without `MOTO_IAM_LOAD_MANAGED_POLICIES=true`, every `aws_iam_role_policy_attachment` fails with `NoSuchEntity`.
-- A second `terraform plan` after apply shows drift: `2 to add, 6 to change, 2 to destroy`. Moto does not return the EKS `access_config`, it returns a fake `remote_access` block on the node group, and it does not fully echo back SG rules or launch template attributes. This is emulation drift only. Against real AWS the plan is clean.
+- (Observed in an earlier run against Moto, not re-checked in the ClinicFlow run.) A second `terraform plan` after apply showed drift: `2 to add, 6 to change, 2 to destroy`. Moto does not return the EKS `access_config`, it returns a fake `remote_access` block on the node group, and it does not fully echo back SG rules or launch template attributes. This is emulation drift only. Against real AWS the plan is clean.
 
 ## Security scan (Checkov)
 
 ```bash
 cd terraform
-docker run --rm -v "$PWD":/tf -w /tf bridgecrew/checkov -d /tf --framework terraform --quiet --compact --skip-path .terraform
-# Passed checks: 146, Failed checks: 0, Skipped checks: 17
+checkov -d modules/clinicflow-infra --framework terraform --compact --quiet
+# Passed checks: 138, Failed checks: 0, Skipped checks: 9      (screenshot 36)
 ```
+
+The 9 skips are the ones listed below: CKV_AWS_38, CKV_AWS_39, CKV_AWS_341, CKV_AWS_109, CKV_AWS_111, CKV_AWS_356, CKV_AWS_25, CKV_AWS_382 and CKV2_AWS_19.
 
 The first scan reported 5 failures:
 
