@@ -50,8 +50,8 @@ Environment: macOS on Apple Silicon, Docker Desktop (4 GB VM), minikube profile 
 | **M2** Tests | pytest passes; ≥5 tests over ≥3 endpoints; test DB, not prod; `pytest.ini`/`conftest.py` | **37 tests, 100% coverage**, SQLite test DB set in [`conftest.py`](backend/tests/conftest.py), [`pytest.ini`](backend/pytest.ini). Plus 5 frontend unit tests. Screenshots 10-12 |
 | **M3** Git | Public repo; meaningful commits; `.gitignore` for `.env`, `__pycache__`, `node_modules`, `.venv` | [`.gitignore`](.gitignore) plus per-app ignores. See [§5](#5-m3-git-and-github) |
 | **M4** Docker | Backend Dockerfile builds; multi-stage frontend (Node → Nginx); non-root; `docker compose up --build` runs all 3 | [`backend/Dockerfile`](backend/Dockerfile) (uid 10001), [`frontend/Dockerfile`](frontend/Dockerfile) (nginx-unprivileged, uid 101), [`docker-compose.yml`](docker-compose.yml). Screenshots 13, 17, 02 |
-| **M5** CI/CD | Workflow on push to `main`; pytest gates; frontend build; both images; GHCR; SHA tags | [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`cd.yml`](.github/workflows/cd.yml). Run URLs: see [§7](#7-m5-cicd-with-github-actions) |
-| **M6** Trivy | Trivy on both images in CI; fails on HIGH/CRITICAL; explain a CVE / clean result | `image-scan` job and [`security/trivy.yaml`](security/trivy.yaml). Explanation in [§8](#8-m6-devsecops-and-trivy). Screenshots 20-23 |
+| **M5** CI/CD | Workflow on push to `main`; pytest gates; frontend build; both images; GHCR; SHA tags | [`.github/workflows/ci.yml`](.github/workflows/ci.yml), [`cd.yml`](.github/workflows/cd.yml). [CI run 38894500767](https://github.com/jenyyy4/devops-heros/actions/runs/38894500767) (11/11 green), GHCR images tagged with the commit SHA, CD bot commit. Screenshots 100-108 |
+| **M6** Trivy | Trivy on both images in CI; fails on HIGH/CRITICAL; explain a CVE / clean result | `image-scan` job and [`security/trivy.yaml`](security/trivy.yaml). Explanation in [§8](#8-m6-devsecops-and-trivy). Screenshots 20-23, and 103 (Trivy in the CI run) |
 | **M7** Terraform | Valid HCL; init; plan; VPC with 2+ public subnets; EKS + node group; destroy; `tfvars.example` | [`terraform/`](terraform/): plan **47 to add**, apply, verify, destroy **47 destroyed**. [`terraform.tfvars.example`](terraform/terraform.tfvars.example). Screenshots 30-37 |
 | **M8** K8s + Helm | `k8s/namespace.yaml`; chart; `helm upgrade --install`; ≥2 replicas each; ClusterIP services; Ingress `/` and `/api`; all pods Running | [`k8s/`](k8s/), [`helm/clinicflow/`](helm/clinicflow/). Screenshots 40-55 (52 = pods, svc, `helm list`; 54 = UI through the Ingress hostname) |
 | **M9** Observability | `/metrics`; Prometheus scraping (UP); Grafana; a live panel | [`monitoring/`](monitoring/). Screenshots 18, 61 (`/metrics`), 62 (Targets **UP**), 64 (Grafana dashboard with 13 panels), 65 (alert firing) |
@@ -127,7 +127,7 @@ final-devops-project/
 ├── troubleshooting/          9 broken/fixed scenarios + write-up
 ├── scripts/                  seed-demo.sh, load-test.sh, sync-root-workflows.sh
 ├── .github/workflows/        ci.yml, cd.yml  (standalone-repo version)
-└── screenshots/              01-97, real captures
+└── screenshots/              01-109, real captures
 ```
 
 ![project tree](screenshots/01-project-tree.png)
@@ -233,7 +233,7 @@ cd frontend && npm test && npm run build                            # 5 node:tes
 
 * Repository: **https://github.com/jenyyy4/devops-heros** (public). This capstone is `session21-python/final-devops-project/`.
 * `.gitignore` files exclude `.env`/`*.env` (except `.env.example`), `__pycache__/`, `node_modules/`, `.venv/`, `dist/`, `.terraform/`, `*.tfstate*`, `test.db`, coverage and report folders.
-* The history has 79+ commits. The ClinicFlow rebuild is meant to go in as separate descriptive commits (backend, frontend, restructure, migration-race fix, monitoring, CI, docs), not one "update" commit.
+* The history has 85+ commits. The ClinicFlow rebuild went in as separate commits (layout, backend, frontend, infrastructure rename, CI/CD, docs), followed by the CD bot commit. See [screenshot 109](screenshots/109-github-commit-history.png).
 * No secrets in history: gitleaks scans the **whole git history** of this folder in CI, and it was run locally too (screenshot 23).
 
 ---
@@ -288,13 +288,25 @@ Commit → image → deployment is therefore traceable both ways.
 
 All four workflow files (the two here and the two generated root copies) pass **actionlint** with no findings.
 
-> **GitHub Actions run, GHCR and CD evidence for ClinicFlow:** *to be added after the ClinicFlow commits are pushed.*
-> The workflows run automatically on that push. The README section is ready for three things:
-> 1. The run URL from `gh run list --workflow "Session 21 - ClinicFlow CI"`.
-> 2. The GHCR package page (`https://github.com/jenyyy4?tab=packages`) showing `clinicflow-backend`/`clinicflow-frontend` with SHA tags.
-> 3. The CD bot commit.
->
-> The earlier pipeline runs in this repository built the TaskBoard template, so they are not used as ClinicFlow evidence.
+### Real runs on GitHub Actions
+
+| Run | Result |
+|---|---|
+| [CI #4: run 38894500767](https://github.com/jenyyy4/devops-heros/actions/runs/38894500767), commit `7597c29` | ✅ **All 11 jobs green** in 3m14s. pytest: 37 passed, 100% coverage. Trivy on both images: 0 HIGH/CRITICAL. Images pushed to GHCR. |
+| [CD: run 38894861599](https://github.com/jenyyy4/devops-heros/actions/runs/38894861599) | ✅ `gitops-update` committed [`f8d04d5`](https://github.com/jenyyy4/devops-heros/commit/f8d04d5) as `github-actions[bot]`, pinning `7597c293…` in `values-prod.yaml` (it was the old TaskBoard tag `86cb243…`). `helm-deploy` was skipped (no `KUBECONFIG` secret). |
+| GHCR | [`clinicflow-backend`](https://github.com/users/jenyyy4/packages/container/package/clinicflow-backend) and [`clinicflow-frontend`](https://github.com/users/jenyyy4/packages/container/package/clinicflow-frontend) are **public**, tagged `7597c293298bb0891f6983e6896b64c5506ec136` + `latest`. The registry digests match the CI push log. |
+
+(The `The process '/usr/bin/git' failed with exit code 128` annotations come from the checkout action's post-job cleanup. They are warnings, not failures.)
+
+![actions run](screenshots/107-github-actions-ci-run-page.png)
+
+| | |
+|---|---|
+| ![run list](screenshots/100-gh-actions-run-list.png) | ![jobs](screenshots/101-gh-ci-run-all-jobs-green.png) |
+| ![pytest in CI](screenshots/102-gh-ci-pytest-log.png) | ![push to ghcr](screenshots/104-gh-ci-push-ghcr-sha-tags.png) |
+| ![cd bot commit](screenshots/105-gh-cd-gitops-bot-commit.png) | ![ghcr tags](screenshots/106-ghcr-sha-tags-registry-api.png) |
+
+![ghcr package](screenshots/108-ghcr-package-clinicflow-backend.png)
 
 ---
 
@@ -325,6 +337,10 @@ All four workflow files (the two here and the two generated root copies) pass **
 | | |
 |---|---|
 | ![trivy clean](screenshots/20-trivy-image-scan-clean.png) | ![debian slim](screenshots/21-trivy-why-not-debian-slim.png) |
+
+Trivy gate inside the real CI run (both images clean, gate passed):
+
+![trivy in ci](screenshots/103-gh-ci-trivy-scan-log.png)
 
 ![gate](screenshots/22-security-gate-all-scanners.png)
 ![gitleaks history](screenshots/23-gitleaks-git-history.png)
@@ -459,7 +475,7 @@ Argo CD v3.5.4 was installed lean: dex, notifications, applicationset and the UI
 | Prune | `autoscaling.enabled: false` in Git → Argo **deleted** the HPA (`status=Pruned`) | 75 |
 | Roll forward | Restore commit; the 4 Git commits match the 4 entries in Argo's sync history | 76 |
 
-The demo source is a local Git repo served by `git daemon` ([`gitops/sync-local-repo.sh`](gitops/sync-local-repo.sh)), the Session 20 approach. The **GitHub-sourced** Application [`gitops/argocd-application-github.yaml`](gitops/argocd-application-github.yaml) watches `values-prod.yaml`, the file CD bumps. It is the end-to-end path GitHub → CI → GHCR → CD commit → Argo CD → cluster, and it is applied once the ClinicFlow commits and images are on GitHub.
+The demo source is a local Git repo served by `git daemon` ([`gitops/sync-local-repo.sh`](gitops/sync-local-repo.sh)), the Session 20 approach. The **GitHub-sourced** Application [`gitops/argocd-application-github.yaml`](gitops/argocd-application-github.yaml) watches `values-prod.yaml`, the file CD bumps. It is the end-to-end path GitHub → CI → GHCR → CD commit → Argo CD → cluster, The CD side of that path ran on GitHub (§7). Applying this Application to a cluster completes it.
 
 | | |
 |---|---|
@@ -517,7 +533,7 @@ Each step below covers one stage of the brief: Application → Git commit → CI
 | Item | Status |
 |---|---|
 | AWS Console screenshot (M7) | No AWS account is available, so Terraform ran against **Moto**. The same module and the same commands work on real AWS: `terraform/main.tf` plus a tfvars file, at about USD 5-6/day; destroy straight after grading. The boto3 listing (35) shows the VPC, subnets and an `ACTIVE` EKS cluster and node group in the mock instead. |
-| GitHub Actions, GHCR and Argo-from-GitHub evidence for ClinicFlow (M5) | The workflows are ready and actionlint-clean; they run on the first push of these commits. The screenshots and run URLs are added afterwards. |
+| Argo CD deploying from GitHub | CI, GHCR and the CD tag bump ran on GitHub (§7). The cluster was deleted after the demo, so the GitHub-sourced Argo Application (`gitops/argocd-application-github.yaml`) was not re-applied for ClinicFlow. The Argo demo used the local Git source (§12). |
 | Ingress on macOS | The docker driver's node IP isn't routable from the Mac, so the Ingress controller is port-forwarded (`:8080`) and the hostname is resolved to `127.0.0.1`. |
 | In-cluster Postgres | Fine for the demo. Use RDS in production (see [§10](#10-m8-kubernetes-and-helm)). |
 

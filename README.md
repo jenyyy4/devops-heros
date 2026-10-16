@@ -7,3 +7,7 @@
 - Section A: https://forms.gle/ydjAJcwxjpjBXgxB8
 - Section B: https://forms.gle/pAuXQaokwVzhRzit6                      
 
+
+## Final capstone project (Session 21): ClinicFlow
+Clinic appointment booking app (React + FastAPI + PostgreSQL) with Docker, GitHub Actions CI/CD + Trivy, GHCR, Terraform (AWS VPC + EKS), Kubernetes, Helm, Ingress, HPA, Prometheus/Grafana and Argo CD.
+- Project README: [session21-python/final-devops-project/README.md](session21-python/final-devops-project/README.md)
