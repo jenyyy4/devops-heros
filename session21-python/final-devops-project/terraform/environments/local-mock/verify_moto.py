@@ -10,7 +10,7 @@ ENDPOINT = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:4577"
 KW = dict(endpoint_url=ENDPOINT, region_name="ap-south-1",
           aws_access_key_id="test", aws_secret_access_key="test")
 ec2, eks, ecr = (boto3.client(s, **KW) for s in ("ec2", "eks", "ecr"))
-F = [{"Name": "tag:Project", "Values": ["taskboard"]}]
+F = [{"Name": "tag:Project", "Values": ["clinicflow"]}]
 
 
 def name(tags):

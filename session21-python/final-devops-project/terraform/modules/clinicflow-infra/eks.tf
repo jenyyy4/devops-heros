@@ -116,7 +116,7 @@ resource "aws_eks_node_group" "default" {
   }
 
   labels = {
-    workload = "taskboard"
+    workload = "clinicflow"
   }
 
   tags = merge(local.tags, { Name = "${var.name}-node" })

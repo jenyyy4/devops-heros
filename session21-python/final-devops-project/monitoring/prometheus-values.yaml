@@ -27,7 +27,7 @@ server:
     requests: {cpu: 50m, memory: 192Mi}
     limits: {cpu: 500m, memory: 512Mi}
 
-# ---- scrape jobs: keep only what the TaskBoard dashboard needs ----
+# ---- scrape jobs: keep only what the ClinicFlow dashboard needs ----
 scrapeConfigs:
   kubernetes-api-servers: {enabled: false}
   kubernetes-nodes: {enabled: false}
@@ -38,8 +38,8 @@ scrapeConfigs:
   kubernetes-pods-slow: {enabled: false}
   prometheus-pushgateway: {enabled: false}
   # kubernetes-pods (default ON): scrapes every pod annotated prometheus.io/scrape="true"
-  #   -> the TaskBoard backend (/metrics from prometheus-fastapi-instrumentator)
-  cadvisor-taskboard:
+  #   -> the ClinicFlow backend (/metrics from prometheus-fastapi-instrumentator)
+  cadvisor-clinicflow:
     job_name: cadvisor
     scheme: https
     tls_config:
@@ -64,28 +64,35 @@ scrapeConfigs:
 serverFiles:
   alerting_rules.yml:
     groups:
-      - name: taskboard.rules
+      - name: clinicflow.rules
         rules:
-          - alert: TaskBoardBackendDown
-            expr: sum(up{job="kubernetes-pods", namespace="taskboard", app_kubernetes_io_component="backend"}) < 1 or absent(up{job="kubernetes-pods", namespace="taskboard", app_kubernetes_io_component="backend"})
+          - alert: ClinicFlowBackendDown
+            expr: sum(up{job="kubernetes-pods", namespace="clinicflow", app_kubernetes_io_component="backend"}) < 1 or absent(up{job="kubernetes-pods", namespace="clinicflow", app_kubernetes_io_component="backend"})
             for: 1m
             labels: {severity: critical}
             annotations:
-              summary: TaskBoard backend is down
-              description: No TaskBoard backend pod has been successfully scraped for 1 minute.
-          - alert: TaskBoardHighErrorRate
+              summary: ClinicFlow backend is down
+              description: No ClinicFlow backend pod has been successfully scraped for 1 minute.
+          - alert: ClinicFlowHighErrorRate
             expr: |
-              (sum(rate(http_requests_total{namespace="taskboard", status="5xx"}[2m])) or vector(0))
-                / clamp_min(sum(rate(http_requests_total{namespace="taskboard"}[2m])), 1e-9) > 0.05
+              (sum(rate(http_requests_total{namespace="clinicflow", status="5xx"}[2m])) or vector(0))
+                / clamp_min(sum(rate(http_requests_total{namespace="clinicflow"}[2m])), 1e-9) > 0.05
             for: 1m
             labels: {severity: warning}
             annotations:
-              summary: TaskBoard backend 5xx error rate above 5%
+              summary: ClinicFlow backend 5xx error rate above 5%
               description: "{{ $value | humanizePercentage }} of requests are failing."
-          - alert: TaskBoardHighLatencyP95
+          - alert: ClinicFlowHighLatencyP95
             expr: |
-              histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="taskboard"}[5m]))) > 0.5
+              histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="clinicflow"}[5m]))) > 0.5
             for: 5m
             labels: {severity: warning}
             annotations:
-              summary: TaskBoard p95 latency above 500ms
+              summary: ClinicFlow p95 latency above 500ms
+          - alert: ClinicFlowBookingConflictSpike
+            expr: sum(increase(clinicflow_booking_conflicts_total{namespace="clinicflow"}[10m])) > 10
+            for: 0m
+            labels: {severity: info}
+            annotations:
+              summary: Many double-booking attempts at the front desk
+              description: "{{ $value | humanize }} bookings were rejected as double-bookings in 10 minutes (calendar out of sync or a client retry loop?)."

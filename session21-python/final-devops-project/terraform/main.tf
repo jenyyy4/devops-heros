@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------------------
-# TaskBoard - real AWS root module.
-# All resources live in ./modules/taskboard-infra so that the exact same code
+# ClinicFlow - real AWS root module.
+# All resources live in ./modules/clinicflow-infra so that the exact same code
 # can also be exercised against a local AWS mock (environments/local-mock).
 # ---------------------------------------------------------------------------
-module "taskboard" {
-  source = "./modules/taskboard-infra"
+module "clinicflow" {
+  source = "./modules/clinicflow-infra"
 
-  name = "taskboard-${var.environment}"
+  name = "clinicflow-${var.environment}"
   tags = { Environment = var.environment }
 
   # network

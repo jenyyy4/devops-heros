@@ -1,20 +1,20 @@
-# AppProject: limits what the TaskBoard Applications may deploy and where.
+# AppProject: limits what the ClinicFlow Applications may deploy and where.
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: taskboard
+  name: clinicflow
   namespace: argocd
 spec:
-  description: TaskBoard capstone (Session 21)
+  description: ClinicFlow capstone (Session 21)
   sourceRepos:
-    - git://host.minikube.internal/taskboard-gitops      # local demo repo (git daemon)
+    - git://host.minikube.internal/clinicflow-gitops      # local demo repo (git daemon)
     - https://github.com/jenyyy4/devops-heros.git         # real-world repo
     - https://github.com/jenyyy4/devops-heros
   destinations:
     - server: https://kubernetes.default.svc
-      namespace: taskboard
+      namespace: clinicflow
     - server: https://kubernetes.default.svc
-      namespace: taskboard-prod
+      namespace: clinicflow-prod
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace

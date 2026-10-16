@@ -1,5 +1,5 @@
 variable "name" {
-  description = "Name prefix for every resource (e.g. taskboard-dev)."
+  description = "Name prefix for every resource (e.g. clinicflow-dev)."
   type        = string
 }
 
@@ -132,7 +132,7 @@ variable "node_disk_size" {
 variable "ecr_repositories" {
   description = "ECR repositories to create (alternative to GHCR)."
   type        = list(string)
-  default     = ["taskboard-backend", "taskboard-frontend"]
+  default     = ["clinicflow-backend", "clinicflow-frontend"]
 }
 
 variable "ecr_keep_last_images" {

@@ -1,13 +1,13 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: taskboard
-  namespace: taskboard
-  labels: {app.kubernetes.io/part-of: taskboard}
+  name: clinicflow
+  namespace: clinicflow
+  labels: {app.kubernetes.io/part-of: clinicflow}
 spec:
   ingressClassName: nginx
   rules:
-    - host: taskboard.local
+    - host: clinicflow.local
       http:
         paths:
           - path: /api

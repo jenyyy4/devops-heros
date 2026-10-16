@@ -1,28 +1,28 @@
 # LOCAL GitOps demo (applied): Argo CD tracks a local git repo served by `git daemon`
 # from the Mac (see sync-local-repo.sh). Repo layout mirrors this project:
-#   helm/taskboard/                      <- the Helm chart
-#   gitops/apps/taskboard/values-local.yaml  <- environment values (edit + commit to deploy)
+#   helm/clinicflow/                      <- the Helm chart
+#   gitops/apps/clinicflow/values-local.yaml  <- environment values (edit + commit to deploy)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: taskboard
+  name: clinicflow
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io   # deleting the App deletes its resources
 spec:
-  project: taskboard
+  project: clinicflow
   source:
-    repoURL: git://host.minikube.internal/taskboard-gitops
+    repoURL: git://host.minikube.internal/clinicflow-gitops
     targetRevision: main
-    path: helm/taskboard
+    path: helm/clinicflow
     helm:
-      releaseName: taskboard
+      releaseName: clinicflow
       valueFiles:
         - values.yaml
-        - ../../gitops/apps/taskboard/values-local.yaml
+        - ../../gitops/apps/clinicflow/values-local.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: taskboard
+    namespace: clinicflow
   syncPolicy:
     automated:
       prune: true      # delete resources removed from git

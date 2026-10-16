@@ -1,8 +1,8 @@
 {
-  "uid": "taskboard",
-  "title": "TaskBoard - Service Overview",
+  "uid": "clinicflow",
+  "title": "ClinicFlow - Service & Bookings Overview",
   "tags": [
-    "taskboard",
+    "clinicflow",
     "session21"
   ],
   "timezone": "browser",
@@ -64,7 +64,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "sum(up{job=\"kubernetes-pods\", namespace=\"taskboard\", app_kubernetes_io_component=\"backend\"})"
+          "expr": "sum(up{job=\"kubernetes-pods\", namespace=\"clinicflow\", app_kubernetes_io_component=\"backend\"})"
         }
       ]
     },
@@ -113,7 +113,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "sum(rate(http_requests_total{namespace=\"taskboard\", handler!=\"/metrics\"}[1m]))"
+          "expr": "sum(rate(http_requests_total{namespace=\"clinicflow\", handler!=\"/metrics\"}[1m]))"
         }
       ]
     },
@@ -170,7 +170,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "(sum(rate(http_requests_total{namespace=\"taskboard\", handler!=\"/metrics\", status=\"5xx\"}[5m])) or vector(0)) / clamp_min(sum(rate(http_requests_total{namespace=\"taskboard\", handler!=\"/metrics\"}[5m])), 1e-9)"
+          "expr": "(sum(rate(http_requests_total{namespace=\"clinicflow\", handler!=\"/metrics\", status=\"5xx\"}[5m])) or vector(0)) / clamp_min(sum(rate(http_requests_total{namespace=\"clinicflow\", handler!=\"/metrics\"}[5m])), 1e-9)"
         }
       ]
     },
@@ -227,7 +227,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"taskboard\", handler!=\"/metrics\"}[5m])))"
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"clinicflow\", handler!=\"/metrics\"}[5m])))"
         }
       ]
     },
@@ -275,7 +275,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "sum by (method, handler) (rate(http_requests_total{namespace=\"taskboard\", handler!=\"/metrics\"}[1m]))",
+          "expr": "sum by (method, handler) (rate(http_requests_total{namespace=\"clinicflow\", handler!=\"/metrics\"}[1m]))",
           "legendFormat": "{{method}} {{handler}}"
         }
       ]
@@ -324,7 +324,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "sum by (status) (rate(http_requests_total{namespace=\"taskboard\", handler!=\"/metrics\"}[1m]))",
+          "expr": "sum by (status) (rate(http_requests_total{namespace=\"clinicflow\", handler!=\"/metrics\"}[1m]))",
           "legendFormat": "{{status}}"
         }
       ]
@@ -373,7 +373,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "histogram_quantile(0.5, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"taskboard\", handler!=\"/metrics\"}[5m])))",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"clinicflow\", handler!=\"/metrics\"}[5m])))",
           "legendFormat": "p50"
         },
         {
@@ -382,7 +382,7 @@
             "uid": "prometheus"
           },
           "refId": "B",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"taskboard\", handler!=\"/metrics\"}[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"clinicflow\", handler!=\"/metrics\"}[5m])))",
           "legendFormat": "p95"
         },
         {
@@ -391,7 +391,7 @@
             "uid": "prometheus"
           },
           "refId": "C",
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"taskboard\", handler!=\"/metrics\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace=\"clinicflow\", handler!=\"/metrics\"}[5m])))",
           "legendFormat": "p99"
         }
       ]
@@ -421,7 +421,8 @@
             }
           },
           "min": 0,
-          "softMax": 0.05
+          "softMax": 0.05,
+          "max": 1
         },
         "overrides": []
       },
@@ -441,7 +442,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "(sum(rate(http_requests_total{namespace=\"taskboard\", handler!=\"/metrics\", status=\"5xx\"}[5m])) or vector(0)) / clamp_min(sum(rate(http_requests_total{namespace=\"taskboard\", handler!=\"/metrics\"}[5m])), 1e-9)",
+          "expr": "(sum(rate(http_requests_total{namespace=\"clinicflow\", handler!=\"/metrics\", status=\"5xx\"}[5m])) or vector(0)) / clamp_min(sum(rate(http_requests_total{namespace=\"clinicflow\", handler!=\"/metrics\"}[5m])), 1e-9)",
           "legendFormat": "5xx ratio"
         }
       ]
@@ -490,7 +491,7 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"taskboard\", container!=\"\"}[2m]))",
+          "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"clinicflow\", container!=\"\"}[2m]))",
           "legendFormat": "{{pod}}"
         }
       ]
@@ -539,8 +540,128 @@
             "uid": "prometheus"
           },
           "refId": "A",
-          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"taskboard\", container!=\"\"})",
+          "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"clinicflow\", container!=\"\"})",
           "legendFormat": "{{pod}}"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "row",
+      "title": "Clinic bookings (business metrics)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Appointments booked by specialty (per 5m)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (specialty) (increase(clinicflow_appointments_booked_total{namespace=\"clinicflow\"}[5m]))",
+          "legendFormat": "{{specialty}}"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Status changes & booking conflicts (per 5m)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 12,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "stacking": {
+              "mode": "none"
+            }
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "A",
+          "expr": "sum by (status) (increase(clinicflow_appointment_status_changes_total{namespace=\"clinicflow\"}[5m]))",
+          "legendFormat": "\u2192 {{status}}"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "refId": "B",
+          "expr": "sum(increase(clinicflow_booking_conflicts_total{namespace=\"clinicflow\"}[5m]))",
+          "legendFormat": "double-booking rejected (409)"
         }
       ]
     }

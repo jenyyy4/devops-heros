@@ -44,17 +44,17 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "taskboard"
+      Project     = "clinicflow"
       Environment = "local-mock"
       ManagedBy   = "terraform"
     }
   }
 }
 
-module "taskboard" {
-  source = "../../modules/taskboard-infra"
+module "clinicflow" {
+  source = "../../modules/clinicflow-infra"
 
-  name = "taskboard-mock"
+  name = "clinicflow-mock"
   tags = { Environment = "local-mock" }
 
   vpc_cidr             = "10.20.0.0/16"

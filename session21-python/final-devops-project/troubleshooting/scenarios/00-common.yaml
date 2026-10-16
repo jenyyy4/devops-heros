@@ -1,37 +1,37 @@
-# Shared objects for every scenario. Scenarios run in their OWN namespace (tb-debug) because
-# namespace taskboard is owned by Argo CD (selfHeal would "fix" our breakage before we can debug it).
-# They reuse the Argo-managed Postgres in namespace taskboard over cluster DNS.
+# Shared objects for every scenario. Scenarios run in their OWN namespace (cf-debug) because
+# namespace clinicflow is owned by Argo CD (selfHeal would "fix" our breakage before we can debug it).
+# They reuse the Argo-managed Postgres in namespace clinicflow over cluster DNS.
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: tb-debug
+  name: cf-debug
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: api-config
-  namespace: tb-debug
+  namespace: cf-debug
 data:
-  DB_HOST: taskboard-postgres.taskboard.svc.cluster.local
+  DB_HOST: clinicflow-postgres.clinicflow.svc.cluster.local
   DB_PORT: "5432"
-  DB_NAME: taskboard
+  DB_NAME: clinicflow
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: api-db
-  namespace: tb-debug
+  namespace: cf-debug
 type: Opaque
 stringData:
-  DB_USER: taskboard
-  DB_PASSWORD: taskboard-dev-password
+  DB_USER: clinicflow
+  DB_PASSWORD: clinicflow-dev-password
 ---
 # toolbox pod used as an in-cluster client (wget/nslookup) during investigations
 apiVersion: v1
 kind: Pod
 metadata:
   name: toolbox
-  namespace: tb-debug
+  namespace: cf-debug
 spec:
   containers:
     - name: toolbox

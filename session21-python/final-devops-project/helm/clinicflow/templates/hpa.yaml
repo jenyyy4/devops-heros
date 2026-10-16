@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "taskboard.fullname" . }}-backend
+  name: {{ include "clinicflow.fullname" . }}-backend
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "taskboard.fullname" . }}-backend
+    name: {{ include "clinicflow.fullname" . }}-backend
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
@@ -20,6 +20,9 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
   behavior:
+    scaleUp:
+      # Python import + Alembic briefly burn CPU when a pod starts; don't scale on that spike.
+      stabilizationWindowSeconds: 60
     scaleDown:
       stabilizationWindowSeconds: 120
 {{- end }}

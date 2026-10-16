@@ -15,7 +15,7 @@ provider "aws" {
   # Every resource gets these tags automatically (cost allocation / ownership).
   default_tags {
     tags = {
-      Project     = "taskboard"
+      Project     = "clinicflow"
       Environment = var.environment
       ManagedBy   = "terraform"
       Owner       = var.owner

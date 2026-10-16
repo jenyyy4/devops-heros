@@ -8,6 +8,6 @@ generatorOptions:
   labels:
     grafana_dashboard: "1"
 configMapGenerator:
-  - name: taskboard-grafana-dashboard
+  - name: clinicflow-grafana-dashboard
     files:
-      - dashboards/taskboard-dashboard.json
+      - dashboards/clinicflow-dashboard.json

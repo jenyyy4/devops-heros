@@ -4,16 +4,16 @@
 #
 # One-time bootstrap (creates the bucket + lock table, real AWS):
 #
-#   aws s3api create-bucket --bucket taskboard-tfstate-<account-id> \
+#   aws s3api create-bucket --bucket clinicflow-tfstate-<account-id> \
 #       --region ap-south-1 --create-bucket-configuration LocationConstraint=ap-south-1
-#   aws s3api put-bucket-versioning --bucket taskboard-tfstate-<account-id> \
+#   aws s3api put-bucket-versioning --bucket clinicflow-tfstate-<account-id> \
 #       --versioning-configuration Status=Enabled
-#   aws s3api put-bucket-encryption --bucket taskboard-tfstate-<account-id> \
+#   aws s3api put-bucket-encryption --bucket clinicflow-tfstate-<account-id> \
 #       --server-side-encryption-configuration \
 #       '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"aws:kms"}}]}'
-#   aws s3api put-public-access-block --bucket taskboard-tfstate-<account-id> \
+#   aws s3api put-public-access-block --bucket clinicflow-tfstate-<account-id> \
 #       --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
-#   aws dynamodb create-table --table-name taskboard-tf-locks \
+#   aws dynamodb create-table --table-name clinicflow-tf-locks \
 #       --attribute-definitions AttributeName=LockID,AttributeType=S \
 #       --key-schema AttributeName=LockID,KeyType=HASH --billing-mode PAY_PER_REQUEST
 #
@@ -24,10 +24,10 @@
 
 # terraform {
 #   backend "s3" {
-#     bucket         = "taskboard-tfstate-<account-id>"
+#     bucket         = "clinicflow-tfstate-<account-id>"
 #     key            = "final-devops-project/dev/terraform.tfstate"
 #     region         = "ap-south-1"
-#     dynamodb_table = "taskboard-tf-locks"
+#     dynamodb_table = "clinicflow-tf-locks"
 #     encrypt        = true
 #   }
 # }

@@ -3,14 +3,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "taskboard.postgresName" . }}
+  name: {{ include "clinicflow.postgresName" . }}
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgres
 spec:
   clusterIP: None
   selector:
-    {{- include "taskboard.selectorLabels" $sel | nindent 4 }}
+    {{- include "clinicflow.selectorLabels" $sel | nindent 4 }}
   ports:
     - name: postgres
       port: {{ .Values.postgres.port }}
@@ -19,20 +19,20 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "taskboard.postgresName" . }}
+  name: {{ include "clinicflow.postgresName" . }}
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgres
 spec:
-  serviceName: {{ include "taskboard.postgresName" . }}
+  serviceName: {{ include "clinicflow.postgresName" . }}
   replicas: 1
   selector:
     matchLabels:
-      {{- include "taskboard.selectorLabels" $sel | nindent 6 }}
+      {{- include "clinicflow.selectorLabels" $sel | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "taskboard.selectorLabels" $sel | nindent 8 }}
+        {{- include "clinicflow.selectorLabels" $sel | nindent 8 }}
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
@@ -49,9 +49,9 @@ spec:
             - name: POSTGRES_DB
               value: {{ .Values.postgres.database | quote }}
             - name: POSTGRES_USER
-              valueFrom: {secretKeyRef: {name: {{ include "taskboard.secretName" . }}, key: DB_USER}}
+              valueFrom: {secretKeyRef: {name: {{ include "clinicflow.secretName" . }}, key: DB_USER}}
             - name: POSTGRES_PASSWORD
-              valueFrom: {secretKeyRef: {name: {{ include "taskboard.secretName" . }}, key: DB_PASSWORD}}
+              valueFrom: {secretKeyRef: {name: {{ include "clinicflow.secretName" . }}, key: DB_PASSWORD}}
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           readinessProbe:

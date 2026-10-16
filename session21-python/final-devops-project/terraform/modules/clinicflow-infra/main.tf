@@ -1,6 +1,6 @@
 locals {
   tags = merge({
-    Project   = "taskboard"
+    Project   = "clinicflow"
     ManagedBy = "terraform"
   }, var.tags)
 

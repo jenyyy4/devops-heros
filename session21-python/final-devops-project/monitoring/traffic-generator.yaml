@@ -1,10 +1,10 @@
 # Gentle, steady traffic so the dashboard / PromQL queries have data (~6 req/s).
-#   kubectl apply -f monitoring/traffic-generator.yaml ; kubectl -n taskboard delete pod traffic-generator
+#   kubectl apply -f monitoring/traffic-generator.yaml ; kubectl -n clinicflow delete pod traffic-generator
 apiVersion: v1
 kind: Pod
 metadata:
   name: traffic-generator
-  namespace: taskboard
+  namespace: clinicflow
   labels: {app: traffic-generator}
 spec:
   restartPolicy: Never
@@ -15,9 +15,10 @@ spec:
       args:
         - |
           while true; do
-            wget -q -O- http://backend:8000/api/tasks >/dev/null 2>&1
-            wget -q -O- http://backend:8000/api/tasks/stats >/dev/null 2>&1
-            wget -q -O- http://backend:8000/api/tasks/99999 >/dev/null 2>&1   # 404 on purpose
+            wget -q -O- "http://backend:8000/api/appointments?date=$(date +%F)" >/dev/null 2>&1
+            wget -q -O- "http://backend:8000/api/appointments/stats?date=$(date +%F)" >/dev/null 2>&1
+            wget -q -O- http://backend:8000/api/doctors >/dev/null 2>&1
+            wget -q -O- http://backend:8000/api/patients/99999 >/dev/null 2>&1   # 404 on purpose
             sleep 0.5
           done
       resources:

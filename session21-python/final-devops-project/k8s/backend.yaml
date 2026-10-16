@@ -2,10 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
-  namespace: taskboard
-  labels: {app: backend, app.kubernetes.io/part-of: taskboard}
+  namespace: clinicflow
+  labels: {app: backend, app.kubernetes.io/part-of: clinicflow}
 spec:
-  replicas: 1
+  replicas: 2
   revisionHistoryLimit: 3
   selector:
     matchLabels: {app: backend}
@@ -14,7 +14,7 @@ spec:
     rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
   template:
     metadata:
-      labels: {app: backend, app.kubernetes.io/part-of: taskboard}
+      labels: {app: backend, app.kubernetes.io/part-of: clinicflow}
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8000"
@@ -31,7 +31,7 @@ spec:
           image: postgres:16-alpine
           command: ["sh", "-c", "until pg_isready -U probe -h \"$DB_HOST\" -p \"$DB_PORT\"; do echo waiting for postgres; sleep 2; done"]
           envFrom:
-            - configMapRef: {name: taskboard-config}
+            - configMapRef: {name: clinicflow-config}
           resources:
             requests: {cpu: 10m, memory: 16Mi}
             limits: {cpu: 100m, memory: 64Mi}
@@ -41,17 +41,17 @@ spec:
             capabilities: {drop: ["ALL"]}
       containers:
         - name: backend
-          image: taskboard-backend:1.0.0
+          image: clinicflow-backend:1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - {name: http, containerPort: 8000}
           envFrom:
-            - configMapRef: {name: taskboard-config}
+            - configMapRef: {name: clinicflow-config}
           env:
             - name: DB_USER
-              valueFrom: {secretKeyRef: {name: taskboard-db, key: DB_USER}}
+              valueFrom: {secretKeyRef: {name: clinicflow-db, key: DB_USER}}
             - name: DB_PASSWORD
-              valueFrom: {secretKeyRef: {name: taskboard-db, key: DB_PASSWORD}}
+              valueFrom: {secretKeyRef: {name: clinicflow-db, key: DB_PASSWORD}}
             # pydantic-settings reads DATABASE_URL; built from ConfigMap + Secret values
             - name: DATABASE_URL
               value: "postgresql+psycopg://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
@@ -86,8 +86,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: backend               # the frontend nginx proxies /api to http://backend:8000
-  namespace: taskboard
-  labels: {app: backend, app.kubernetes.io/part-of: taskboard}
+  namespace: clinicflow
+  labels: {app: backend, app.kubernetes.io/part-of: clinicflow}
 spec:
   selector: {app: backend}
   ports:

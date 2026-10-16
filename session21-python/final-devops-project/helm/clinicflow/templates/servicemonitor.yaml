@@ -2,16 +2,16 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "taskboard.fullname" . }}-backend
+  name: {{ include "clinicflow.fullname" . }}-backend
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
     {{- with .Values.serviceMonitor.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   selector:
     matchLabels:
-      {{- include "taskboard.selectorLabels" (dict "ctx" . "component" "backend") | nindent 6 }}
+      {{- include "clinicflow.selectorLabels" (dict "ctx" . "component" "backend") | nindent 6 }}
   endpoints:
     - port: http
       path: /metrics

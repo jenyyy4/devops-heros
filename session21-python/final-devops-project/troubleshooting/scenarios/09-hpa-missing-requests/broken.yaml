@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api
-  namespace: tb-debug
+  namespace: cf-debug
 spec:
   replicas: 1
   selector:
@@ -15,7 +15,7 @@ spec:
       securityContext: {runAsNonRoot: true, runAsUser: 10001}
       containers:
         - name: api
-          image: taskboard-backend:1.0.0
+          image: clinicflow-backend:1.0.0
           imagePullPolicy: IfNotPresent
           ports: [{name: http, containerPort: 8000}]
           env:
@@ -47,7 +47,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: api
-  namespace: tb-debug
+  namespace: cf-debug
 spec:
   scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: api}
   minReplicas: 1

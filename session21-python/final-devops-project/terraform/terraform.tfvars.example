@@ -19,4 +19,4 @@ node_max_size       = 4
 
 enable_nat_gateway = true
 
-ecr_repositories = ["taskboard-backend", "taskboard-frontend"]
+ecr_repositories = ["clinicflow-backend", "clinicflow-frontend"]

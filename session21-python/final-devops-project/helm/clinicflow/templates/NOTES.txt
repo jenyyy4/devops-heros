@@ -1,7 +1,7 @@
-TaskBoard {{ .Chart.AppVersion }} deployed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+ClinicFlow {{ .Chart.AppVersion }} deployed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
 
-Backend image : {{ include "taskboard.backendImage" . }}
-Frontend image: {{ include "taskboard.frontendImage" . }}
+Backend image : {{ include "clinicflow.backendImage" . }}
+Frontend image: {{ include "clinicflow.frontendImage" . }}
 Backend replicas: {{ if .Values.autoscaling.enabled }}HPA {{ .Values.autoscaling.minReplicas }}-{{ .Values.autoscaling.maxReplicas }} @ {{ .Values.autoscaling.targetCPUUtilizationPercentage }}% CPU{{ else }}{{ .Values.backend.replicaCount }}{{ end }}
 
 1. Check the rollout:
@@ -11,13 +11,13 @@ Backend replicas: {{ if .Values.autoscaling.enabled }}HPA {{ .Values.autoscaling
 2. Open the app via the ingress (host {{ .Values.ingress.host }}):
    # minikube + docker driver on macOS:
    kubectl -n ingress-nginx port-forward svc/ingress-nginx-controller 8080:80 &
-   curl --resolve {{ .Values.ingress.host }}:8080:127.0.0.1 http://{{ .Values.ingress.host }}:8080/api/tasks
+   curl --resolve {{ .Values.ingress.host }}:8080:127.0.0.1 http://{{ .Values.ingress.host }}:8080/api/doctors
 {{- else }}
 2. Port-forward the frontend:
-   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "taskboard.fullname" . }}-frontend 8080:{{ .Values.frontend.service.port }}
+   kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "clinicflow.fullname" . }}-frontend 8080:{{ .Values.frontend.service.port }}
 {{- end }}
 
 3. Smoke test: helm test {{ .Release.Name }} -n {{ .Release.Namespace }}
 {{- if .Values.serviceMonitor.enabled }}
-4. Prometheus scrapes /metrics through ServiceMonitor {{ include "taskboard.fullname" . }}-backend.
+4. Prometheus scrapes /metrics through ServiceMonitor {{ include "clinicflow.fullname" . }}-backend.
 {{- end }}

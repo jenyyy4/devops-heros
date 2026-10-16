@@ -1,5 +1,5 @@
 # Trivy configuration — container image gate
-#   trivy --config security/trivy.yaml image taskboard-backend:1.0.0
+#   trivy --config security/trivy.yaml image clinicflow-backend:1.0.0
 # Policy: fail (exit 1) on any HIGH or CRITICAL vulnerability that already has a fix,
 # and on any secret baked into an image layer.
 severity:

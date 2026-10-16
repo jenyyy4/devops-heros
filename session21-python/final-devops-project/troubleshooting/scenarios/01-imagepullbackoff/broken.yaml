@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api
-  namespace: tb-debug
+  namespace: cf-debug
 spec:
   replicas: 1
   selector:
@@ -15,7 +15,7 @@ spec:
       securityContext: {runAsNonRoot: true, runAsUser: 10001}
       containers:
         - name: api
-          image: taskboard-backend:9.9.9
+          image: clinicflow-backend:9.9.9
           imagePullPolicy: IfNotPresent
           ports: [{name: http, containerPort: 8000}]
           env:

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  TaskBoard — DevSecOps scan suite + security gate
+#  ClinicFlow — DevSecOps scan suite + security gate
 #
 #  Runs every scanner the CI pipeline runs, prints a summary table and exits
 #  non-zero (BLOCKS the release) when any gate fails:
@@ -14,8 +14,8 @@
 #    Images      trivy image (HIGH/CRITICAL with a fix + embedded secrets)
 #
 #  Usage:   security/run-security-scans.sh [all|sast|sca|secrets|dockerfile|images]...
-#  Env:     BACKEND_IMAGE  (default taskboard-backend:1.0.0)
-#           FRONTEND_IMAGE (default taskboard-frontend:1.0.0)
+#  Env:     BACKEND_IMAGE  (default clinicflow-backend:1.0.0)
+#           FRONTEND_IMAGE (default clinicflow-frontend:1.0.0)
 #           SKIP_IMAGES=1  skip image scans (e.g. before images are built)
 #           REPORT_DIR     where JSON/SARIF/text reports go (default security/reports)
 #
@@ -26,11 +26,11 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SEC="$ROOT/security"
-BACKEND="$ROOT/application/backend"
-FRONTEND="$ROOT/application/frontend"
+BACKEND="$ROOT/backend"
+FRONTEND="$ROOT/frontend"
 REPORT_DIR="${REPORT_DIR:-$SEC/reports}"
-BACKEND_IMAGE="${BACKEND_IMAGE:-taskboard-backend:1.0.0}"
-FRONTEND_IMAGE="${FRONTEND_IMAGE:-taskboard-frontend:1.0.0}"
+BACKEND_IMAGE="${BACKEND_IMAGE:-clinicflow-backend:1.0.0}"
+FRONTEND_IMAGE="${FRONTEND_IMAGE:-clinicflow-frontend:1.0.0}"
 SKIP_IMAGES="${SKIP_IMAGES:-0}"
 
 # Pinned scanner images (same versions as .github/workflows/ci.yml)
@@ -70,10 +70,10 @@ python_tools() {
 scan_sast() {
   banner "SAST · bandit (Python)"
   python_tools || { gate "SAST bandit" 99; return; }
-  "$PY_BIN/bandit" -c security/bandit.yaml -r application/backend/app -f json -o "$REPORT_DIR/bandit.json" --exit-zero -q
-  "$PY_BIN/bandit" -c security/bandit.yaml -r application/backend/app -ll -ii -q
+  "$PY_BIN/bandit" -c security/bandit.yaml -r backend/app -f json -o "$REPORT_DIR/bandit.json" --exit-zero -q
+  "$PY_BIN/bandit" -c security/bandit.yaml -r backend/app -ll -ii -q
   local brc=$?
-  [ "$brc" -eq 0 ] && echo "bandit: no MEDIUM+ severity/confidence issues in application/backend/app"
+  [ "$brc" -eq 0 ] && echo "bandit: no MEDIUM+ severity/confidence issues in backend/app"
   gate "SAST bandit" "$brc"
 
   banner "SAST · semgrep (python, javascript, dockerfile)"
@@ -84,7 +84,7 @@ scan_sast() {
   docker run --rm -v "$ROOT:/src" -w /src "$SEMGREP_IMAGE" semgrep scan \
     --config p/python --config p/javascript --config p/dockerfile \
     --metrics=off --disable-version-check --quiet --error "${excludes[@]}" \
-    --json-output="reports-semgrep.json" --text application
+    --json-output="reports-semgrep.json" --text backend frontend
   local rc=$?
   mv -f "$ROOT/reports-semgrep.json" "$REPORT_DIR/semgrep.json" 2>/dev/null
   [ "$rc" -eq 0 ] && echo "semgrep: 0 blocking findings"
@@ -123,18 +123,21 @@ scan_dockerfile() {
   banner "Dockerfile lint · hadolint"
   local rc=0 d
   for d in backend frontend; do
-    echo "-- application/$d/Dockerfile"
+    echo "-- $d/Dockerfile"
     docker run --rm -i -v "$SEC/.hadolint.yaml:/.config/hadolint.yaml:ro" "$HADOLINT_IMAGE" \
-      hadolint --config /.config/hadolint.yaml - < "$ROOT/application/$d/Dockerfile" || rc=1
+      hadolint --config /.config/hadolint.yaml - < "$ROOT/$d/Dockerfile" || rc=1
   done
   [ "$rc" -eq 0 ] && echo "hadolint: no warnings or errors"
   gate "Dockerfile hadolint" "$rc"
 
   banner "IaC/Dockerfile misconfig · trivy config (HIGH+)"
-  docker run --rm -v "$ROOT:/src:ro" -v trivy-cache:/root/.cache/ -w /src "$TRIVY_IMAGE" \
-    config --quiet --disable-telemetry --config "" --severity HIGH,CRITICAL --exit-code 1 \
-    --skip-dirs application/frontend/node_modules --skip-dirs application/backend/.venv application
-  gate "Dockerfile trivy config" $?
+  local trc=0
+  for d in backend frontend; do
+    docker run --rm -v "$ROOT:/src:ro" -v trivy-cache:/root/.cache/ -w /src "$TRIVY_IMAGE" \
+      config --quiet --disable-telemetry --config "" --severity HIGH,CRITICAL --exit-code 1 \
+      --skip-dirs "$d/node_modules" --skip-dirs "$d/.venv" "$d" || trc=1
+  done
+  gate "Dockerfile trivy config" "$trc"
 }
 
 # --------------------------------------------------------------------- images
@@ -168,7 +171,7 @@ scan_images() {
     name="${img%%:*}"
     banner "Container image · trivy $img (HIGH/CRITICAL, fixable)"
     if ! docker image inspect "$img" >/dev/null 2>&1; then
-      echo "${R}image $img not found — build it first (docker compose -f docker/docker-compose.yml build)${N}"
+      echo "${R}image $img not found — build it first (docker compose build)${N}"
       gate "Image $name" 98; continue
     fi
     # full report for the record (all severities), then the gate run with the policy file
@@ -185,7 +188,7 @@ scan_images() {
 
 # ----------------------------------------------------------------------- main
 STAGES=("$@"); [ ${#STAGES[@]} -eq 0 ] && STAGES=(all)
-echo "${B}TaskBoard security scan${N} — $(basename "$ROOT") @ $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo no-git)"
+echo "${B}ClinicFlow security scan${N} — $(basename "$ROOT") @ $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo no-git)"
 echo "images: $BACKEND_IMAGE, $FRONTEND_IMAGE   reports: ${REPORT_DIR#"$ROOT"/}"
 for s in "${STAGES[@]}"; do
   case "$s" in

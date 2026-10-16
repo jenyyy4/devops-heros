@@ -1,5 +1,5 @@
 # hadolint (Dockerfile linter) configuration
-#   hadolint --config security/.hadolint.yaml application/*/Dockerfile
+#   hadolint --config security/.hadolint.yaml */Dockerfile
 failure-threshold: warning   # warnings and errors fail the gate; info/style are reported only
 trustedRegistries:
   - docker.io

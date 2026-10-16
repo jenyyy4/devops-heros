@@ -7,7 +7,7 @@ backend:
     requests: {cpu: 100m, memory: 128Mi}
     limits: {cpu: 500m, memory: 384Mi}
 frontend:
-  replicaCount: 1
+  replicaCount: 2
 postgres:
   persistence:
     size: 1Gi                 # prod asks 10Gi
@@ -15,11 +15,11 @@ postgres:
     requests: {cpu: 100m, memory: 128Mi}
     limits: {cpu: 500m, memory: 512Mi}
 ingress:
-  host: taskboard-prod.local
+  host: clinicflow-prod.local
   annotations: {}             # no cert-manager on minikube
   tls: []
 autoscaling:
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 3
 serviceMonitor:
   enabled: false              # plain Prometheus here (annotation scraping), no operator CRDs

@@ -8,3 +8,7 @@ dist/
 *.tfstate*
 security/reports/
 .DS_Store
+.env
+*.env
+!.env.example
+test.db

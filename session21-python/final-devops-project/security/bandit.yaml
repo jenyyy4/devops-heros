@@ -1,5 +1,5 @@
 # Bandit (Python SAST) configuration
-#   bandit -c security/bandit.yaml -r application/backend/app
+#   bandit -c security/bandit.yaml -r backend/app
 # Gate used by run-security-scans.sh / CI: fail on MEDIUM+ severity with MEDIUM+ confidence (-ll -ii).
 exclude_dirs:
   - tests

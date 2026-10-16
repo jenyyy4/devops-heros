@@ -79,5 +79,5 @@ variable "enable_nat_gateway" {
 variable "ecr_repositories" {
   description = "ECR repositories to create."
   type        = list(string)
-  default     = ["taskboard-backend", "taskboard-frontend"]
+  default     = ["clinicflow-backend", "clinicflow-frontend"]
 }

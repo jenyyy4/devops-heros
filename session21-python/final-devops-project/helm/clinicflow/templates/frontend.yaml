@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "taskboard.fullname" . }}-frontend
+  name: {{ include "clinicflow.fullname" . }}-frontend
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
 spec:
   replicas: {{ .Values.frontend.replicaCount }}
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      {{- include "taskboard.selectorLabels" $sel | nindent 6 }}
+      {{- include "clinicflow.selectorLabels" $sel | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "taskboard.selectorLabels" $sel | nindent 8 }}
+        {{- include "clinicflow.selectorLabels" $sel | nindent 8 }}
     spec:
       automountServiceAccountToken: false
       {{- with .Values.imagePullSecrets }}
@@ -28,7 +28,7 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: frontend
-          image: {{ include "taskboard.frontendImage" . | quote }}
+          image: {{ include "clinicflow.frontendImage" . | quote }}
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           ports:
             - {name: http, containerPort: {{ .Values.frontend.containerPort }}}
@@ -52,13 +52,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "taskboard.fullname" . }}-frontend
+  name: {{ include "clinicflow.fullname" . }}-frontend
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
     app.kubernetes.io/component: frontend
 spec:
   selector:
-    {{- include "taskboard.selectorLabels" $sel | nindent 4 }}
+    {{- include "clinicflow.selectorLabels" $sel | nindent 4 }}
   ports:
     - name: http
       port: {{ .Values.frontend.service.port }}

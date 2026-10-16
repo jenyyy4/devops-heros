@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# ECR repositories - an AWS-native alternative to GHCR for the TaskBoard
+# ECR repositories - an AWS-native alternative to GHCR for the ClinicFlow
 # images. Nodes can pull from them via AmazonEC2ContainerRegistryReadOnly.
 # ---------------------------------------------------------------------------
 resource "aws_ecr_repository" "this" {

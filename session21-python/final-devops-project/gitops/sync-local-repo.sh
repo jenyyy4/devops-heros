@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Create/refresh the LOCAL git repo that Argo CD watches, and serve it with git daemon.
 #   GITOPS_SRC=~/gitops-src ./gitops/sync-local-repo.sh "commit message"
-# Copies helm/taskboard and gitops/apps from this project into $GITOPS_SRC/taskboard-gitops,
+# Copies helm/clinicflow and gitops/apps from this project into $GITOPS_SRC/clinicflow-gitops,
 # commits, and (if needed) starts `git daemon` on :9418 so the cluster can clone
-# git://host.minikube.internal/taskboard-gitops
+# git://host.minikube.internal/clinicflow-gitops
 set -euo pipefail
 PROJECT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="${GITOPS_SRC:-$HOME/gitops-src}"
-REPO="$SRC/taskboard-gitops"
+REPO="$SRC/clinicflow-gitops"
 MSG="${1:-sync from final-devops-project}"
 
 mkdir -p "$REPO"
@@ -15,7 +15,7 @@ if [ ! -d "$REPO/.git" ]; then
   git -C "$REPO" init -q -b main
 fi
 mkdir -p "$REPO/helm" "$REPO/gitops/apps"
-rsync -a --delete "$PROJECT/helm/taskboard/" "$REPO/helm/taskboard/"
+rsync -a --delete "$PROJECT/helm/clinicflow/" "$REPO/helm/clinicflow/"
 rsync -a --delete "$PROJECT/gitops/apps/" "$REPO/gitops/apps/"
 git -C "$REPO" add -A
 if git -C "$REPO" diff --cached --quiet; then
@@ -27,5 +27,5 @@ fi
 
 if ! lsof -iTCP:9418 -sTCP:LISTEN >/dev/null 2>&1; then
   git daemon --reuseaddr --export-all --base-path="$SRC" --port=9418 --detach
-  echo "git daemon started: git://host.minikube.internal/taskboard-gitops"
+  echo "git daemon started: git://host.minikube.internal/clinicflow-gitops"
 fi

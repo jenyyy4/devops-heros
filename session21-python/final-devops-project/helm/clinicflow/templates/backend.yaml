@@ -2,9 +2,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "taskboard.fullname" . }}-backend
+  name: {{ include "clinicflow.fullname" . }}-backend
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 spec:
   {{- if not .Values.autoscaling.enabled }}
@@ -16,11 +16,11 @@ spec:
     rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
   selector:
     matchLabels:
-      {{- include "taskboard.selectorLabels" $sel | nindent 6 }}
+      {{- include "clinicflow.selectorLabels" $sel | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "taskboard.selectorLabels" $sel | nindent 8 }}
+        {{- include "clinicflow.selectorLabels" $sel | nindent 8 }}
       annotations:
         # roll the pods automatically when config or credentials change
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
@@ -44,7 +44,7 @@ spec:
           image: {{ .Values.postgres.image }}
           command: ["sh", "-c", "until pg_isready -U probe -h \"$DB_HOST\" -p \"$DB_PORT\"; do echo waiting for postgres; sleep 2; done"]
           envFrom:
-            - configMapRef: {name: {{ include "taskboard.fullname" . }}-config}
+            - configMapRef: {name: {{ include "clinicflow.fullname" . }}-config}
           resources:
             requests: {cpu: 10m, memory: 16Mi}
             limits: {cpu: 100m, memory: 64Mi}
@@ -53,17 +53,17 @@ spec:
       {{- end }}
       containers:
         - name: backend
-          image: {{ include "taskboard.backendImage" . | quote }}
+          image: {{ include "clinicflow.backendImage" . | quote }}
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
           ports:
             - {name: http, containerPort: 8000}
           envFrom:
-            - configMapRef: {name: {{ include "taskboard.fullname" . }}-config}
+            - configMapRef: {name: {{ include "clinicflow.fullname" . }}-config}
           env:
             - name: DB_USER
-              valueFrom: {secretKeyRef: {name: {{ include "taskboard.secretName" . }}, key: DB_USER}}
+              valueFrom: {secretKeyRef: {name: {{ include "clinicflow.secretName" . }}, key: DB_USER}}
             - name: DB_PASSWORD
-              valueFrom: {secretKeyRef: {name: {{ include "taskboard.secretName" . }}, key: DB_PASSWORD}}
+              valueFrom: {secretKeyRef: {name: {{ include "clinicflow.secretName" . }}, key: DB_PASSWORD}}
             - name: DATABASE_URL
               value: "postgresql+psycopg://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
           {{- with .Values.backend.probes }}
@@ -97,11 +97,11 @@ kind: Service
 metadata:
   name: {{ .Values.backend.service.name }}
   labels:
-    {{- include "taskboard.labels" . | nindent 4 }}
+    {{- include "clinicflow.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 spec:
   selector:
-    {{- include "taskboard.selectorLabels" $sel | nindent 4 }}
+    {{- include "clinicflow.selectorLabels" $sel | nindent 4 }}
   ports:
     - name: http
       port: {{ .Values.backend.service.port }}

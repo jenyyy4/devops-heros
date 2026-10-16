@@ -1,7 +1,7 @@
 # Minimal Grafana (grafana/grafana chart).
 #   helm upgrade --install grafana grafana/grafana -n monitoring -f monitoring/grafana-values.yaml
 adminUser: admin
-adminPassword: taskboard-admin     # demo only
+adminPassword: clinicflow-admin     # demo only
 persistence: {enabled: false}
 testFramework: {enabled: false}
 resources:

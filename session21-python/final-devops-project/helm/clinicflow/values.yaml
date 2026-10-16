@@ -1,4 +1,4 @@
-# Default values = local minikube (images built into the cluster, ingress host taskboard.local).
+# Default values = local minikube (images built into the cluster, ingress host clinicflow.local).
 # Override per environment with values-dev.yaml / values-prod.yaml.
 
 nameOverride: ""
@@ -7,19 +7,19 @@ imagePullSecrets: []
 
 # ---------------------------------------------------------------- application config
 config:
-  appName: "TaskBoard API"
+  appName: "ClinicFlow API"
   logLevel: "info"
 
 # ---------------------------------------------------------------- backend (FastAPI)
 backend:
   image:
-    repository: taskboard-backend
+    repository: clinicflow-backend
     tag: ""                 # defaults to .Chart.AppVersion
     pullPolicy: IfNotPresent
-  replicaCount: 1           # ignored when autoscaling.enabled=true
+  replicaCount: 2           # ignored when autoscaling.enabled=true
   service:
     # The frontend nginx proxies /api to http://backend:8000, so keep this name
-    # unless you also change application/frontend/nginx.conf.
+    # unless you also change frontend/nginx.conf.
     name: backend
     port: 8000
   podAnnotations:
@@ -38,10 +38,10 @@ backend:
 # ---------------------------------------------------------------- frontend (nginx)
 frontend:
   image:
-    repository: taskboard-frontend
+    repository: clinicflow-frontend
     tag: ""                 # defaults to .Chart.AppVersion
     pullPolicy: IfNotPresent
-  replicaCount: 1
+  replicaCount: 2           # >= 2 so a rolling update / node drain never drops the UI
   containerPort: 8080       # nginx-unprivileged
   service:
     port: 80
@@ -55,10 +55,10 @@ postgres:
   host: ""                  # only used when enabled=false
   port: 5432
   image: postgres:16-alpine
-  database: taskboard
+  database: clinicflow
   auth:
-    username: taskboard
-    password: taskboard-dev-password   # demo only - use existingSecret in real envs
+    username: clinicflow
+    password: clinicflow-dev-password   # demo only - use existingSecret in real envs
     existingSecret: ""                 # Secret with keys DB_USER / DB_PASSWORD
   persistence:
     size: 1Gi
@@ -71,15 +71,15 @@ postgres:
 ingress:
   enabled: true
   className: nginx
-  host: taskboard.local
+  host: clinicflow.local
   annotations: {}
-  tls: []                   # [{secretName: taskboard-tls, hosts: [taskboard.example.com]}]
+  tls: []                   # [{secretName: clinicflow-tls, hosts: [clinicflow.example.com]}]
 
 # ---------------------------------------------------------------- autoscaling (backend)
 autoscaling:
   enabled: true
-  minReplicas: 1
-  maxReplicas: 3
+  minReplicas: 2
+  maxReplicas: 5
   targetCPUUtilizationPercentage: 50
 
 # ---------------------------------------------------------------- security
