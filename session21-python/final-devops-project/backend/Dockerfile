@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# TaskBoard API — multi-stage build
+# ClinicFlow API — multi-stage build
 #   stage 1 (builder): install Python deps into an isolated virtualenv
 #   stage 2 (runtime): copy only the venv + app code, run as a non-root user
 
@@ -14,8 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt \
 
 FROM python:3.12.15-alpine3.24 AS runtime
 ARG GIT_SHA=dev
-LABEL org.opencontainers.image.title="taskboard-backend" \
-      org.opencontainers.image.description="TaskBoard FastAPI backend" \
+LABEL org.opencontainers.image.title="clinicflow-backend" \
+      org.opencontainers.image.description="ClinicFlow FastAPI backend" \
       org.opencontainers.image.revision="${GIT_SHA}"
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
