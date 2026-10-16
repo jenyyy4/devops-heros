@@ -2,7 +2,7 @@
 backend:
   image:
     repository: ghcr.io/jenyyy4/clinicflow-backend
-    tag: "86cb243959fcc953e9cd538ec4e02b91288ba4d1"
+    tag: "7597c293298bb0891f6983e6896b64c5506ec136"
     pullPolicy: IfNotPresent
   resources:
     requests: {cpu: 250m, memory: 256Mi}
@@ -10,7 +10,7 @@ backend:
 frontend:
   image:
     repository: ghcr.io/jenyyy4/clinicflow-frontend
-    tag: "86cb243959fcc953e9cd538ec4e02b91288ba4d1"
+    tag: "7597c293298bb0891f6983e6896b64c5506ec136"
   replicaCount: 2
 postgres:
   auth:
